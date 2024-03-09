@@ -7,21 +7,36 @@ use sdl2::render::{Texture, WindowCanvas};
 use std::path::Path;
 use std::time::Duration;
 
+struct Player {
+    position: Point,
+    sprite: Rect,
+}
+
+impl Player {
+    pub fn new(number: i32) -> Player {
+        let position = Point::new(number * 26, number * 36);
+        let sprite = Rect::new(0, 0, 26, 36);
+
+        Player { position, sprite }
+    }
+}
+
 fn render(
     canvas: &mut WindowCanvas,
     color: Color,
     texture: &Texture,
-    position: Point,
-    sprite: Rect
+    players: &Vec<&Player>,
 ) -> Result<(), String> {
     canvas.set_draw_color(color);
     canvas.clear();
 
     let (width, height) = canvas.output_size()?;
 
-    let screen_position = position + Point::new(width as i32 / 2, height as i32 / 2);
-    let screen_rect = Rect::from_center(screen_position, sprite.width(), sprite.height());
-    canvas.copy(texture, sprite, screen_rect)?;
+    for player in players {
+        let screen_position = player.position + Point::new(width as i32 / 2, height as i32 / 2);
+        let screen_rect = Rect::from_center(screen_position, player.sprite.width(), player.sprite.height());
+        canvas.copy(texture, player.sprite, screen_rect)?;
+    }
 
     canvas.present();
     
@@ -43,9 +58,13 @@ fn main() -> Result<(), String> {
     let texture_creator = canvas.texture_creator();
     let texture = texture_creator.load_texture(Path::new("assets/bardo.png"))?;
 
-    let mut position = Point::new(0, 0);
-    // Source position in the spritesheet
-    let sprite = Rect::new(0, 0, 26, 36);
+    let mut players: Vec<&Player> = Vec::new();
+
+    let mut player = Player::new(1);
+    let mut player2 = Player::new(2);
+   
+    players.push(&mut player);
+    players.push(&mut player2);
 
     let mut event_pump = sdl_context.event_pump()?;
     let mut i = 0;
@@ -58,16 +77,16 @@ fn main() -> Result<(), String> {
                     break 'running
                 },
                 Event::KeyDown { keycode: Some(Keycode::Up), .. } => {
-                    position.y = position.y() - 10;
+                    // player.position.y = player.position.y() - 5;
                 },
                 Event::KeyDown { keycode: Some(Keycode::Down), .. } => {
-                    position.y = position.y() + 10;
+                    // player.position.y = player.position.y() + 5;
                 },
                 Event::KeyDown { keycode: Some(Keycode::Right), .. } => {
-                    position.x = position.x() + 10;
+                    // player.position.x = player.position.x() + 5;
                 },
                 Event::KeyDown { keycode: Some(Keycode::Left), .. } => {
-                    position.x = position.x() - 10;
+                    // player.position.x = player.position.x() - 5;
                 },
                 _ => {}
             }
@@ -77,7 +96,7 @@ fn main() -> Result<(), String> {
         i = (i + 1) % 255;
 
         // Render
-        render(&mut canvas, Color::RGB(30, 30, 30), &texture, position, sprite)?;
+        render(&mut canvas, Color::RGB(30, 30, 30), &texture, &players)?;
 
         // Time management
         ::std::thread::sleep(Duration::from_millis(100));
