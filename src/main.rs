@@ -43,7 +43,7 @@ fn main() -> Result<(), String> {
     let texture_creator = canvas.texture_creator();
     let texture = texture_creator.load_texture(Path::new("assets/bardo.png"))?;
 
-    let position = Point::new(0, 0);
+    let mut position = Point::new(0, 0);
     // Source position in the spritesheet
     let sprite = Rect::new(0, 0, 26, 36);
 
@@ -57,6 +57,18 @@ fn main() -> Result<(), String> {
                 Event::KeyDown { keycode: Some(Keycode::Escape), .. } => {
                     break 'running
                 },
+                Event::KeyDown { keycode: Some(Keycode::Up), .. } => {
+                    position.y = position.y() - 10;
+                },
+                Event::KeyDown { keycode: Some(Keycode::Down), .. } => {
+                    position.y = position.y() + 10;
+                },
+                Event::KeyDown { keycode: Some(Keycode::Right), .. } => {
+                    position.x = position.x() + 10;
+                },
+                Event::KeyDown { keycode: Some(Keycode::Left), .. } => {
+                    position.x = position.x() - 10;
+                },
                 _ => {}
             }
         }
@@ -65,10 +77,10 @@ fn main() -> Result<(), String> {
         i = (i + 1) % 255;
 
         // Render
-        render(&mut canvas, Color::RGB(i, 68, 255 - i), &texture, position, sprite)?;
+        render(&mut canvas, Color::RGB(30, 30, 30), &texture, position, sprite)?;
 
         // Time management
-        ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
+        ::std::thread::sleep(Duration::from_millis(100));
     }
 
     Ok(())
