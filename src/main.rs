@@ -22,8 +22,22 @@ struct Player {
 }
 
 impl Player {
-    fn move_player(&mut self, direction: Direction) {
-        self.speed = PLAYER_MOVEMENT_SPEED;
+    fn unmove_player(&mut self, direction: Direction) {
+        if let Some(index) = self.direction.iter().position(|&x| x == direction) {
+            self.direction.remove(index);
+        }
+
+        if self.direction.len() > 0 {
+            self.speed = PLAYER_MOVEMENT_SPEED;
+        }
+    }
+
+    fn move_player(&mut self, direction: Direction, opposite: Direction) {
+        if self.direction.contains(&opposite) {
+            self.speed = 0;
+        } else {
+            self.speed = PLAYER_MOVEMENT_SPEED;
+        }
         if !self.direction.contains(&direction) {
             self.direction.push_back(direction);
         };
@@ -112,36 +126,28 @@ fn main() -> Result<(), String> {
                     break 'running
                 },
                 Event::KeyDown { keycode: Some(Keycode::Up), .. } => {
-                    player.move_player(Direction::Up)
+                    player.move_player(Direction::Up, Direction::Down)
                 },
                 Event::KeyDown { keycode: Some(Keycode::Down), .. } => {
-                    player.move_player(Direction::Down)
+                    player.move_player(Direction::Down, Direction::Up)
                 },
                 Event::KeyDown { keycode: Some(Keycode::Right), .. } => {
-                    player.move_player(Direction::Right)
+                    player.move_player(Direction::Right, Direction::Left)
                 },
                 Event::KeyDown { keycode: Some(Keycode::Left), .. } => {
-                    player.move_player(Direction::Left)
+                    player.move_player(Direction::Left, Direction::Right)
                 },
                 Event::KeyUp { keycode: Some(Keycode::Left), repeat: false, .. } => {
-                    if let Some(index) = player.direction.iter().position(|&x| x == Direction::Left) {
-                        player.direction.remove(index);
-                    }
+                    player.unmove_player(Direction::Left)
                 },
                 Event::KeyUp { keycode: Some(Keycode::Right), repeat: false, .. } => {
-                    if let Some(index) = player.direction.iter().position(|&x| x == Direction::Right) {
-                        player.direction.remove(index);
-                    }
+                    player.unmove_player(Direction::Right)
                 },
                 Event::KeyUp { keycode: Some(Keycode::Up), repeat: false, .. } => {
-                    if let Some(index) = player.direction.iter().position(|&x| x == Direction::Up) {
-                        player.direction.remove(index);
-                    }
+                    player.unmove_player(Direction::Up)
                 },
                 Event::KeyUp { keycode: Some(Keycode::Down), repeat: false, .. } => {
-                    if let Some(index) = player.direction.iter().position(|&x| x == Direction::Down) {
-                        player.direction.remove(index);
-                    }
+                    player.unmove_player(Direction::Down)
                 },
                 _ => {}
             }
