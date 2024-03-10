@@ -4,25 +4,27 @@ use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::rect::{Point, Rect};
 use sdl2::render::{Texture, WindowCanvas};
+use std::collections::VecDeque;
 use std::path::Path;
 use std::time::Duration;
 
 const PLAYER_MOVEMENT_SPEED: i32 = 20;
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Direction { Up, Down, Left, Right }
 
 struct Player {
     position: Point,
     sprite: Rect,
     speed: i32,
-    direction: Direction,
+    direction: VecDeque<Direction>,
 }
 
 impl Player {
     pub fn new() -> Player {
         let position = Point::new(0, 0);
         let sprite = Rect::new(0, 0, 26, 36);
-        let initial_direction = Direction::Right;
+        let initial_direction = VecDeque::from([]);
 
         Player {
             position,
@@ -54,20 +56,23 @@ fn render(
 }
 
 fn update_player(player: &mut Player) {
+    // Allows the use of `Left`, `Right`, `Up` and `Down` more easily.
     use self::Direction::*;
-    match player.direction {
-        Left => {
+
+    match player.direction.back() {
+        Some(Left) => {
             player.position = player.position.offset(-player.speed, 0);
         },
-        Right => {
+        Some(Right) => {
             player.position = player.position.offset(player.speed, 0);
         },
-        Up => {
+        Some(Up) => {
             player.position = player.position.offset(0, -player.speed);
         },
-        Down => {
+        Some(Down) => {
             player.position = player.position.offset(0, player.speed);
         },
+        None => {},
     }
 }
 
@@ -97,27 +102,51 @@ fn main() -> Result<(), String> {
                 Event::KeyDown { keycode: Some(Keycode::Escape), .. } => {
                     break 'running
                 },
-                Event::KeyDown { keycode: Some(Keycode::Up), .. } if player.speed == 0 => {
+                Event::KeyDown { keycode: Some(Keycode::Up), .. } => {
                     player.speed = PLAYER_MOVEMENT_SPEED;
-                    player.direction = Direction::Up;
+                    if !player.direction.contains(&Direction::Up) {
+                        player.direction.push_back(Direction::Up);
+                    };
                 },
-                Event::KeyDown { keycode: Some(Keycode::Down), .. } if player.speed == 0 => {
+                Event::KeyDown { keycode: Some(Keycode::Down), .. } => {
+                    println!("Down");
                     player.speed = PLAYER_MOVEMENT_SPEED;
-                    player.direction = Direction::Down;
+                    if !player.direction.contains(&Direction::Down) {
+                        player.direction.push_back(Direction::Down);
+                    };
                 },
-                Event::KeyDown { keycode: Some(Keycode::Right), .. } if player.speed == 0 => {
+                Event::KeyDown { keycode: Some(Keycode::Right), .. } => {
+                    println!("Right");
                     player.speed = PLAYER_MOVEMENT_SPEED;
-                    player.direction = Direction::Right;
+                    if !player.direction.contains(&Direction::Right) {
+                        player.direction.push_back(Direction::Right);
+                    };
                 },
-                Event::KeyDown { keycode: Some(Keycode::Left), .. } if player.speed == 0 => {
+                Event::KeyDown { keycode: Some(Keycode::Left), .. } => {
                     player.speed = PLAYER_MOVEMENT_SPEED;
-                    player.direction = Direction::Left;
+                    if !player.direction.contains(&Direction::Left) {
+                        player.direction.push_back(Direction::Left);
+                    };
                 },
-                Event::KeyUp { keycode: Some(Keycode::Left), repeat: false, .. } |
-                Event::KeyUp { keycode: Some(Keycode::Right), repeat: false, .. } |
-                Event::KeyUp { keycode: Some(Keycode::Up), repeat: false, .. } |
+                Event::KeyUp { keycode: Some(Keycode::Left), repeat: false, .. } => {
+                    if let Some(index) = player.direction.iter().position(|&x| x == Direction::Left) {
+                        player.direction.remove(index);
+                    }
+                },
+                Event::KeyUp { keycode: Some(Keycode::Right), repeat: false, .. } => {
+                    if let Some(index) = player.direction.iter().position(|&x| x == Direction::Right) {
+                        player.direction.remove(index);
+                    }
+                },
+                Event::KeyUp { keycode: Some(Keycode::Up), repeat: false, .. } => {
+                    if let Some(index) = player.direction.iter().position(|&x| x == Direction::Up) {
+                        player.direction.remove(index);
+                    }
+                },
                 Event::KeyUp { keycode: Some(Keycode::Down), repeat: false, .. } => {
-                    player.speed = 0;
+                    if let Some(index) = player.direction.iter().position(|&x| x == Direction::Down) {
+                        player.direction.remove(index);
+                    }
                 },
                 _ => {}
             }
@@ -130,7 +159,7 @@ fn main() -> Result<(), String> {
         render(&mut canvas, Color::RGB(30, 30, 30), &texture, &player)?;
 
         // Time management
-        ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 20));
+        ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 10));
     }
 
     Ok(())
