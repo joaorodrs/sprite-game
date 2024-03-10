@@ -13,6 +13,7 @@ const PLAYER_MOVEMENT_SPEED: i32 = 20;
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Direction { Up, Down, Left, Right }
 
+#[derive(Debug)]
 struct Player {
     position: Point,
     sprite: Rect,
@@ -21,6 +22,13 @@ struct Player {
 }
 
 impl Player {
+    fn move_player(&mut self, direction: Direction) {
+        self.speed = PLAYER_MOVEMENT_SPEED;
+        if !self.direction.contains(&direction) {
+            self.direction.push_back(direction);
+        };
+    }
+
     pub fn new() -> Player {
         let position = Point::new(0, 0);
         let sprite = Rect::new(0, 0, 26, 36);
@@ -30,9 +38,10 @@ impl Player {
             position,
             sprite,
             speed: 0,
-            direction: initial_direction
+            direction: initial_direction,
         }
     }
+
 }
 
 fn render(
@@ -103,30 +112,16 @@ fn main() -> Result<(), String> {
                     break 'running
                 },
                 Event::KeyDown { keycode: Some(Keycode::Up), .. } => {
-                    player.speed = PLAYER_MOVEMENT_SPEED;
-                    if !player.direction.contains(&Direction::Up) {
-                        player.direction.push_back(Direction::Up);
-                    };
+                    player.move_player(Direction::Up)
                 },
                 Event::KeyDown { keycode: Some(Keycode::Down), .. } => {
-                    println!("Down");
-                    player.speed = PLAYER_MOVEMENT_SPEED;
-                    if !player.direction.contains(&Direction::Down) {
-                        player.direction.push_back(Direction::Down);
-                    };
+                    player.move_player(Direction::Down)
                 },
                 Event::KeyDown { keycode: Some(Keycode::Right), .. } => {
-                    println!("Right");
-                    player.speed = PLAYER_MOVEMENT_SPEED;
-                    if !player.direction.contains(&Direction::Right) {
-                        player.direction.push_back(Direction::Right);
-                    };
+                    player.move_player(Direction::Right)
                 },
                 Event::KeyDown { keycode: Some(Keycode::Left), .. } => {
-                    player.speed = PLAYER_MOVEMENT_SPEED;
-                    if !player.direction.contains(&Direction::Left) {
-                        player.direction.push_back(Direction::Left);
-                    };
+                    player.move_player(Direction::Left)
                 },
                 Event::KeyUp { keycode: Some(Keycode::Left), repeat: false, .. } => {
                     if let Some(index) = player.direction.iter().position(|&x| x == Direction::Left) {
@@ -159,7 +154,7 @@ fn main() -> Result<(), String> {
         render(&mut canvas, Color::RGB(30, 30, 30), &texture, &player)?;
 
         // Time management
-        ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 10));
+        ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 20));
     }
 
     Ok(())
