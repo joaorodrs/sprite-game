@@ -13,6 +13,7 @@ pub struct Player {
     pub sprite: Rect,
     pub speed: i32,
     pub direction: VecDeque<Direction>,
+    pub current_frame: i32,
 }
 
 impl Player {
@@ -26,6 +27,8 @@ impl Player {
 
         if self.direction.len() > 0 {
             self.speed = PLAYER_MOVEMENT_SPEED;
+        } else {
+            self.speed = 0;
         }
     }
 
@@ -49,13 +52,13 @@ impl Player {
     pub fn new() -> Player {
         let position = Point::new(0, 0);
         let sprite = Rect::new(0, 0, 26, 36);
-        let initial_direction = VecDeque::from([]);
 
         Player {
             position,
             sprite,
             speed: 0,
-            direction: initial_direction,
+            direction: VecDeque::from([]),
+            current_frame: 0,
         }
     }
 

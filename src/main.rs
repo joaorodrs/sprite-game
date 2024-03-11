@@ -9,6 +9,18 @@ use std::time::Duration;
 
 use sprite_game::{Player,Direction};
 
+fn direction_spritesheet_row(direction: Option<&Direction>) -> i32 {
+    use self::Direction::*;
+
+    match direction {
+        Some(Up) => 3,
+        Some(Down) => 0,
+        Some(Left) => 1,
+        Some(Right) => 2,
+        None => 0,
+    }
+}
+
 fn render(
     canvas: &mut WindowCanvas,
     color: Color,
@@ -20,9 +32,17 @@ fn render(
 
     let (width, height) = canvas.output_size()?;
 
+    let (frame_width, frame_height) = player.sprite.size();
+    let current_frame = Rect::new(
+        player.sprite.x() + frame_width as i32 * player.current_frame,
+        player.sprite.y() + frame_height as i32 * direction_spritesheet_row(player.direction.back()),
+        frame_width,
+        frame_height,
+    );
+
     let screen_position = player.position + Point::new(width as i32 / 2, height as i32 / 2);
     let screen_rect = Rect::from_center(screen_position, player.sprite.width(), player.sprite.height());
-    canvas.copy(texture, player.sprite, screen_rect)?;
+    canvas.copy(texture, current_frame, screen_rect)?;
 
     canvas.present();
     
@@ -47,6 +67,10 @@ fn update_player(player: &mut Player) {
             player.position = player.position.offset(0, player.speed);
         },
         None => {},
+    }
+
+    if player.speed != 0 {
+        player.current_frame = (player.current_frame + 1) % 3;
     }
 }
 
