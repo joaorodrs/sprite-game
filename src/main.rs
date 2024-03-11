@@ -9,10 +9,19 @@ use std::time::Duration;
 
 use sprite_game::{Player,Direction};
 
-fn direction_spritesheet_row(direction: Option<&Direction>) -> i32 {
+fn direction_spritesheet_row(last_direction: Option<Direction>, direction: Option<&Direction>) -> i32 {
     use self::Direction::*;
 
-    match direction {
+    let direction_to_use: Option<Direction>;
+
+    if direction != None {
+        let player_direction = direction.unwrap().to_owned();
+        direction_to_use = Some(player_direction);
+    } else {
+        direction_to_use = last_direction;
+    }
+
+    match direction_to_use {
         Some(Up) => 3,
         Some(Down) => 0,
         Some(Left) => 1,
@@ -35,7 +44,7 @@ fn render(
     let (frame_width, frame_height) = player.sprite.size();
     let current_frame = Rect::new(
         player.sprite.x() + frame_width as i32 * player.current_frame,
-        player.sprite.y() + frame_height as i32 * direction_spritesheet_row(player.direction.back()),
+        player.sprite.y() + frame_height as i32 * direction_spritesheet_row(player.last_direction, player.direction.back()),
         frame_width,
         frame_height,
     );

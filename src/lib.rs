@@ -2,7 +2,7 @@ use std::collections::VecDeque;
 
 use sdl2::rect::{Point, Rect};
 
-pub const PLAYER_MOVEMENT_SPEED: i32 = 20;
+pub const PLAYER_MOVEMENT_SPEED: i32 = 10;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Direction { Up, Down, Left, Right }
@@ -13,6 +13,7 @@ pub struct Player {
     pub sprite: Rect,
     pub speed: i32,
     pub direction: VecDeque<Direction>,
+    pub last_direction: Option<Direction>,
     pub current_frame: i32,
 }
 
@@ -21,14 +22,17 @@ impl Player {
     ///
     /// The direction is the Direction that needs to be removed from player current directions.
     pub fn unmove_player(&mut self, direction: Direction) {
+        let &last_direction = self.direction.back().unwrap();
+
         if let Some(index) = self.direction.iter().position(|&x| x == direction) {
             self.direction.remove(index);
         }
 
-        if self.direction.len() > 0 {
+        if self.direction.len() != 0 {
             self.speed = PLAYER_MOVEMENT_SPEED;
         } else {
             self.speed = 0;
+            self.last_direction = Some(last_direction);
         }
     }
 
@@ -59,6 +63,7 @@ impl Player {
             speed: 0,
             direction: VecDeque::from([]),
             current_frame: 0,
+            last_direction: None,
         }
     }
 
