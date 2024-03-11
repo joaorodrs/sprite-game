@@ -2,7 +2,7 @@ use std::collections::VecDeque;
 
 use sdl2::rect::{Point, Rect};
 
-pub const PLAYER_MOVEMENT_SPEED: i32 = 10;
+pub const PLAYER_MOVEMENT_SPEED: i32 = 5;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Direction { Up, Down, Left, Right }
