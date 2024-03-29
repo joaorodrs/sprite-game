@@ -11,8 +11,8 @@ pub struct Keyboard;
 impl<'a> System<'a> for Keyboard {
     type SystemData = (
         ReadExpect<'a, Option<MovementCommand>>,
-        WriteStorage<'a, KeyboardControlled>,
-        ReadStorage<'a, Velocity>,
+        ReadStorage<'a, KeyboardControlled>,
+        WriteStorage<'a, Velocity>,
     );
 
     fn run(&mut self, mut data: Self::SystemData) {
