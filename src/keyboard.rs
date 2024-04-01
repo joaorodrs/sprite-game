@@ -27,9 +27,17 @@ impl<'a> System<'a> for Keyboard {
             match movement_command {
                 &MovementCommand::Move(direction) => {
                     vel.speed = PLAYER_MOVEMENT_SPEED;
-                    vel.direction = direction;
+                    vel.direction.push_back(direction);
                 },
-                MovementCommand::Stop => vel.speed = 0,
+                MovementCommand::Stop(direction) => {
+                    vel.direction.retain(|s| s != direction);
+
+                    if vel.direction.len() != 0 {
+                        return
+                    }
+
+                    vel.speed = 0;
+                },
             }
         }
     }

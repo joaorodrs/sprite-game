@@ -1,3 +1,5 @@
+use std::collections::VecDeque;
+
 use specs::prelude::*;
 use specs_derive::Component;
 use sdl2::rect::{Point, Rect};
@@ -24,7 +26,7 @@ pub struct Position(pub Point);
 #[storage(VecStorage)]
 pub struct Velocity {
     pub speed: i32,
-    pub direction: Direction,
+    pub direction: VecDeque<Direction>,
 }
 
 #[derive(Component, Debug, Clone)]

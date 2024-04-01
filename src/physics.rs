@@ -12,19 +12,20 @@ impl<'a> System<'a> for Physics {
         //TODO: This code can be made nicer and more idiomatic using more pattern matching.
         // Look up "rust irrefutable patterns" and use them here.
         for (pos, vel) in (&mut data.0, &data.1).join() {
-            match vel.direction {
-                Left => {
+            match vel.direction.back() {
+                Some(Left) => {
                     pos.0 = pos.0.offset(-vel.speed, 0);
                 },
-                Right => {
+                Some(Right) => {
                     pos.0 = pos.0.offset(vel.speed, 0);
                 },
-                Up => {
+                Some(Up) => {
                     pos.0 = pos.0.offset(0, -vel.speed);
                 },
-                Down => {
+                Some(Down) => {
                     pos.0 = pos.0.offset(0, vel.speed);
                 },
+                None => return
             }
         }
     }

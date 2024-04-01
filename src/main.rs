@@ -10,6 +10,7 @@ use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::rect::{Point, Rect};
 use specs::World;
+use std::collections::VecDeque;
 use std::time::Duration;
 
 use specs::prelude::*;
@@ -17,34 +18,24 @@ use specs::prelude::*;
 use crate::components::*;
 
 pub enum MovementCommand {
-    Stop,
+    Stop(Direction),
     Move(Direction),
 }
 
-fn direction_spritesheet_row(last_direction: Option<Direction>, direction: Option<&Direction>) -> i32 {
+fn direction_spritesheet_row(direction: Direction) -> i32 {
     use self::Direction::*;
 
-    let direction_to_use: Option<Direction>;
-
-    if direction != None {
-        let player_direction = direction.unwrap().to_owned();
-        direction_to_use = Some(player_direction);
-    } else {
-        direction_to_use = last_direction;
-    }
-
-    match direction_to_use {
-        Some(Up) => 3,
-        Some(Down) => 0,
-        Some(Left) => 1,
-        Some(Right) => 2,
-        None => 0,
+    match direction {
+        Up => 3,
+        Down => 0,
+        Left => 1,
+        Right => 2,
     }
 }
 
 fn character_animation_frames(spritesheet: usize, top_left_frame: Rect, direction: Direction) -> Vec<Sprite> {
     let (frame_width, frame_height) = top_left_frame.size();
-    let y_offset = top_left_frame.y() + frame_height as i32 * direction_spritesheet_row(Some(direction), None);
+    let y_offset = top_left_frame.y() + frame_height as i32 * direction_spritesheet_row(direction);
 
     let mut frames = Vec::new();
     for i in 0..3 {
@@ -105,7 +96,7 @@ fn main() -> Result<(), String> {
     world.create_entity()
         .with(KeyboardControlled)
         .with(Position(Point::new(0, 0)))
-        .with(Velocity { speed: 0, direction: Direction::Down })
+        .with(Velocity { speed: 0, direction: VecDeque::from([]) })
         .with(player_animation.right_frames[0].clone())
         .with(player_animation)
         .build();
@@ -118,26 +109,32 @@ fn main() -> Result<(), String> {
         for event in event_pump.poll_iter() {
             match event {
                 Event::Quit {..} |
-                Event::KeyDown { keycode: Some(Keycode::Escape), .. } => {
+                Event::KeyDown { keycode: Some(Keycode::Escape), repeat: false, .. } => {
                     break 'running
                 },
-                Event::KeyDown { keycode: Some(Keycode::Up), .. } => {
+                Event::KeyDown { keycode: Some(Keycode::Up), repeat: false, .. } => {
                     movement_command = Some(MovementCommand::Move(Direction::Up))
                 },
-                Event::KeyDown { keycode: Some(Keycode::Down), .. } => {
+                Event::KeyDown { keycode: Some(Keycode::Down), repeat: false, .. } => {
                     movement_command = Some(MovementCommand::Move(Direction::Down))
                 },
-                Event::KeyDown { keycode: Some(Keycode::Right), .. } => {
+                Event::KeyDown { keycode: Some(Keycode::Right), repeat: false, .. } => {
                     movement_command = Some(MovementCommand::Move(Direction::Right))
                 },
-                Event::KeyDown { keycode: Some(Keycode::Left), .. } => {
+                Event::KeyDown { keycode: Some(Keycode::Left), repeat: false, .. } => {
                     movement_command = Some(MovementCommand::Move(Direction::Left))
                 },
-                Event::KeyUp { keycode: Some(Keycode::Left), repeat: false, .. } |
-                Event::KeyUp { keycode: Some(Keycode::Right), repeat: false, .. } |
-                Event::KeyUp { keycode: Some(Keycode::Up), repeat: false, .. } |
-                Event::KeyUp { keycode: Some(Keycode::Down), repeat: false, .. } => {
-                    movement_command = Some(MovementCommand::Stop);
+                Event::KeyUp { keycode: Some(Keycode::Up), .. } => {
+                    movement_command = Some(MovementCommand::Stop(Direction::Up));
+                },
+                Event::KeyUp { keycode: Some(Keycode::Down), .. } => {
+                    movement_command = Some(MovementCommand::Stop(Direction::Down));
+                },
+                Event::KeyUp { keycode: Some(Keycode::Right), .. } => {
+                    movement_command = Some(MovementCommand::Stop(Direction::Right));
+                },
+                Event::KeyUp { keycode: Some(Keycode::Left), .. } => {
+                    movement_command = Some(MovementCommand::Stop(Direction::Left));
                 },
                 _ => {}
             }
@@ -150,7 +147,7 @@ fn main() -> Result<(), String> {
         world.maintain();
 
         // Render
-        renderer::render(&mut canvas, Color::RGB(33, 33, 33), &textures,world.system_data())?;
+        renderer::render(&mut canvas, Color::RGB(33, 33, 33), &textures, world.system_data())?;
 
         // Time management
         ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 20));
